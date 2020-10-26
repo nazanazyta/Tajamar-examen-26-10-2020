@@ -1,0 +1,208 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Apuestas</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-light bg-light mb-4">
+        <a class="navbar-brand" href="principal.html">Champions</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="principal.html">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="apuestas.html">Apuestas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Equipos</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <form align="center">
+        <label>Usuario</label>
+        <input type="text" id="usuario" class="form-control-sm" />
+        <label>Resultado</label>
+        <input type="text" id="resultado" class="form-control-sm" />
+        <label>Fecha</label>
+        <input type="text" id="fecha" class="form-control-sm" />
+        <button type="button" id="insertar" class="btn btn-primary">Insertar</button>
+        <button type="button" id="modificar" class="btn btn-warning" disabled>Modificar</button>
+    </form>
+    <br />
+    <main role="main" class="container" id="main">
+        <div class="card">
+            <div class="card-header" align="center">
+                <h1>Champions League</h1>
+            </div>
+            <div class="card-body" align="center">
+                <!--<h3 style="color: blue">Zona de apuestas</h3>-->
+            </div>
+        </div>
+    </main>
+    <script src="js/jquery-3.5.1.min.js"></script>
+    <script src="js/apuesta.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+        var urlapi = "https://apichampions.azurewebsites.net";
+        $(document).ready(function () {
+            cargarApuestas();
+            $("#insertar").click(function () {
+                //console.log($("#usuario").data("id"));
+                var usuario = $("#usuario").val();
+                var resultado = $("#resultado").val();
+                var fecha = $("#fecha").val();
+                var apuesta = new Apuesta();
+                //apuesta.idApuesta = $("#usuario").data("id");
+                apuesta.usuario = usuario;
+                apuesta.resultado = resultado;
+                apuesta.fecha = fecha;
+                var json = JSON.stringify(apuesta);
+                //console.log(json);
+                var req = "/api/Apuestas";
+                $.ajax({
+                    url: urlapi + req
+                    , method: "post"
+                    , data: json
+                    , contentType: "application/json"
+                    , success: function (data) {
+                        alert("Apuesta guardada");
+                        $(".card-body").html("");
+                        $("#usuario").val("");
+                        $("#resultado").val("");
+                        $("#fecha").val("");
+                        cargarApuestas();
+                    }
+                });
+                $("#insertar").attr("disabled", false);
+                $("#modificar").attr("disabled", true);
+            });
+            $("#modificar").click(function () {
+                console.log($("#usuario").data("id"));
+                var usuario = $("#usuario").val();
+                var resultado = $("#resultado").val();
+                var fecha = $("#fecha").val();
+                var apuesta = new Apuesta();
+                apuesta.idApuesta = $("#usuario").data("id");
+                apuesta.usuario = usuario;
+                apuesta.resultado = resultado;
+                apuesta.fecha = fecha;
+                var json = JSON.stringify(apuesta);
+                //console.log(json);
+                var req = "/api/Apuestas";
+                $.ajax({
+                    url: urlapi + req
+                    , method: "put"
+                    , data: json
+                    , contentType: "application/json"
+                    , success: function (data) {
+                        alert("Apuesta modificada");
+                        $(".card-body").html("");
+                        $("#usuario").val("");
+                        $("#resultado").val("");
+                        $("#fecha").val("");
+                        cargarApuestas();
+                    }
+                });
+                $("#insertar").attr("disabled", false);
+                $("#modificar").attr("disabled", true);
+            });
+        });
+        function cargarApuestas() {
+            var h3 = $("<h3>", {
+                style: "color: blue"
+                , text: "Zona de apuestas"
+            });
+            $(".card-body").append(h3);
+            var request = "/api/Apuestas";
+            var tabla = $("<table>", { class: "table table-light table-sm", id: "tablaapuestas" })
+            var thead = $("<thead>", { style: "font-weight: bold" });
+            var thtr = $("<tr>", { align: "center" });
+            var thtdusu = $("<td>", { text: "Usuario" });
+            var thtdres = $("<td>", { text: "Resultado" });
+            var thtdfec = $("<td>", { text: "Fecha" });
+            var thtdmod = $("<td>", { text: "Modificar" });
+            var thtdeli = $("<td>", { text: "Eliminar" });
+            var tbody = $("<tbody>");
+            thtr.append(thtdusu).append(thtdres).append(thtdfec).append(thtdmod).append(thtdeli);
+            thead.append(thtr);
+            tabla.append(thead).append(tbody);
+            $(".card-body").append(tabla);
+            $.getJSON(urlapi + request, function (data) {
+                $.each(data, function (index, apuesta) {
+                    //console.log(apuesta.idApuesta);
+                    var tr = $("<tr>", { align: "center" });
+                    var tdusu = $("<td>", { text: apuesta.usuario });
+                    var tdres = $("<td>", { text: apuesta.resultado });
+                    var tdfec = $("<td>", { text: apuesta.fecha });
+                    var tdmod = $("<td>");
+                    var tdeli = $("<td>");
+                    var botonmod = $("<button>", {
+                        type: "button"
+                        , "data-id": apuesta.idApuesta
+                        , class: "btn btn-warning"
+                        , text: "Modificar"
+                    });
+                    botonmod.click(function () {
+                        console.log($(this).data("id"));
+                        $("#usuario").data("id", apuesta.idApuesta);
+                        $("#usuario").focus();
+                        $("#insertar").attr("disabled", true);
+                        $("#modificar").attr("disabled", false);
+                    });
+                    var botoneli = $("<button>", {
+                        type: "button"
+                        , "data-id": apuesta.idApuesta
+                        , class: "btn btn-danger"
+                        , text: "Eliminar"
+                    });
+                    botoneli.click(function () {
+                        console.log($(this).data("id"));
+                        var id = $(this).data("id");
+                        var req = "/api/Apuestas/" + id;
+                        var respuesta = confirm("Seguro que quiere eliminar esta apuesta??");
+                        if (respuesta) {
+                            $.ajax({
+                                url: urlapi + req
+                                , type: "delete"
+                                , success: function () {
+                                    alert("Apuesta con el id " + id + " eliminada correctamente");
+                                    $(".card-body").html("");
+                                    cargarApuestas();
+                                }
+                            });
+                        }
+                    });
+                    tdmod.append(botonmod);
+                    tdeli.append(botoneli);
+                    tr.append(tdusu).append(tdres).append(tdfec).append(tdmod).append(tdeli);
+                    $("#tablaapuestas tbody").append(tr);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
